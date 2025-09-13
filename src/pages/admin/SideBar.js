@@ -1,85 +1,95 @@
-import * as React from 'react';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import React from "react";
+import { Layout, Menu } from "antd";
+import {
+  HomeOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  ProfileOutlined,
+  NotificationOutlined,
+  TeamOutlined,
+  FileTextOutlined,
+  BookOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
+import { Link, useLocation } from "react-router-dom";
 
-import HomeIcon from "@mui/icons-material/Home";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
-import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
-import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
-import ReportIcon from '@mui/icons-material/Report';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+const { Sider } = Layout;
 
 const SideBar = () => {
-    const location = useLocation();
-    return (
-        <>
-            <React.Fragment>
-                <ListItemButton component={Link} to="/">
-                    <ListItemIcon>
-                        <HomeIcon color={location.pathname === ("/" || "/Admin/dashboard") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Home" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/classes">
-                    <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith('/Admin/classes') ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Classes" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/subjects">
-                    <ListItemIcon>
-                        <AssignmentIcon color={location.pathname.startsWith("/Admin/subjects") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Subjects" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/teachers">
-                    <ListItemIcon>
-                        <SupervisorAccountOutlinedIcon color={location.pathname.startsWith("/Admin/teachers") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Teachers" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/students">
-                    <ListItemIcon>
-                        <PersonOutlineIcon color={location.pathname.startsWith("/Admin/students") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Students" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/notices">
-                    <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Admin/notices") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Notices" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/complains">
-                    <ListItemIcon>
-                        <ReportIcon color={location.pathname.startsWith("/Admin/complains") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Complains" />
-                </ListItemButton>
-            </React.Fragment>
-            <Divider sx={{ my: 1 }} />
-            <React.Fragment>
-                <ListSubheader component="div" inset>
-                    User
-                </ListSubheader>
-                <ListItemButton component={Link} to="/Admin/profile">
-                    <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Admin/profile") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Profile" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/logout">
-                    <ListItemIcon>
-                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Logout" />
-                </ListItemButton>
-            </React.Fragment>
-        </>
-    )
-}
+  const location = useLocation();
 
-export default SideBar
+  const items = [
+    {
+      key: "/",
+      icon: <HomeOutlined />,
+      label: <Link to="/">Home</Link>,
+    },
+    {
+      key: "/Admin/classes",
+      icon: <BookOutlined />,
+      label: <Link to="/Admin/classes">Classes</Link>,
+    },
+    {
+      key: "/Admin/subjects",
+      icon: <FileTextOutlined />,
+      label: <Link to="/Admin/subjects">Subjects</Link>,
+    },
+    {
+      key: "/Admin/teachers",
+      icon: <TeamOutlined />,
+      label: <Link to="/Admin/teachers">Teachers</Link>,
+    },
+    {
+      key: "/Admin/students",
+      icon: <UserOutlined />,
+      label: <Link to="/Admin/students">Students</Link>,
+    },
+    {
+      key: "/Admin/notices",
+      icon: <NotificationOutlined />,
+      label: <Link to="/Admin/notices">Notices</Link>,
+    },
+    {
+      key: "/Admin/complains",
+      icon: <ExclamationCircleOutlined />,
+      label: <Link to="/Admin/complains">Complains</Link>,
+    },
+    {
+      type: "group",
+      label: "User",
+      children: [
+        {
+          key: "/Admin/profile",
+          icon: <ProfileOutlined />,
+          label: <Link to="/Admin/profile">Profile</Link>,
+        },
+        {
+          key: "/logout",
+          icon: <LogoutOutlined />,
+          label: <Link to="/logout">Logout</Link>,
+        },
+      ],
+    },
+  ];
+
+  return (
+    <Sider collapsible>
+      <div
+        style={{
+          height: 64,
+          margin: 16,
+          background: "rgba(255, 255, 255, 0.2)",
+          borderRadius: 8,
+        }}
+      />
+      <Menu
+        mode="inline"
+        theme="dark"
+        selectedKeys={[location.pathname]}
+        items={items}
+      />
+    </Sider>
+  );
+};
+
+export default SideBar;

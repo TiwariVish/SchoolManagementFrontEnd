@@ -1,291 +1,300 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom'
-import { getClassDetails, getClassStudents, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
-import { deleteUser } from '../../../redux/userRelated/userHandle';
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-    Box, Container, Typography, Tab, IconButton
-} from '@mui/material';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import { resetSubjects } from "../../../redux/sclassRelated/sclassSlice";
-import { BlueButton, GreenButton, PurpleButton } from "../../../components/buttonStyles";
-import TableTemplate from "../../../components/TableTemplate";
-import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import SpeedDialTemplate from "../../../components/SpeedDialTemplate";
+  getClassDetails,
+  getClassStudents,
+  getSubjectList,
+} from "../../../redux/sclassRelated/sclassHandle";
+import { Table, Button, Tabs, Popconfirm, Typography, Space, Dropdown, Menu, Drawer } from "antd";
+import {
+  DeleteOutlined,
+  UserAddOutlined,
+  FileAddOutlined,
+  EyeOutlined,
+  EllipsisOutlined,
+} from "@ant-design/icons";
 import Popup from "../../../components/Popup";
-import DeleteIcon from "@mui/icons-material/Delete";
-import PostAddIcon from '@mui/icons-material/PostAdd';
+import SubjectForm from "../subjectRelated/SubjectForm";
+
+
+const { Text } = Typography;
+const { TabPane } = Tabs;
 
 const ClassDetails = () => {
-    const params = useParams()
-    const navigate = useNavigate()
-    const dispatch = useDispatch();
-    const { subjectsList, sclassStudents, sclassDetails, loading, error, response, getresponse } = useSelector((state) => state.sclass);
+  const { id: classID } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { subjectsList, sclassStudents, sclassDetails, loading } = useSelector(
+    (state) => state.sclass
+  );
 
-    const classID = params.id
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
-    useEffect(() => {
-        dispatch(getClassDetails(classID, "Sclass"));
-        dispatch(getSubjectList(classID, "ClassSubjects"))
-        dispatch(getClassStudents(classID));
-    }, [dispatch, classID])
+  const openDrawer = () => setDrawerVisible(true);
+  const closeDrawer = () => setDrawerVisible(false);
 
-    if (error) {
-        console.log(error)
-    }
+  useEffect(() => {
+    dispatch(getClassDetails(classID, "Sclass"));
+    dispatch(getSubjectList(classID, "ClassSubjects"));
+    dispatch(getClassStudents(classID));
+  }, [dispatch, classID]);
 
-    const [value, setValue] = useState('1');
+  const deleteHandler = (id, type) => {
+    setPopupMessage("Sorry, the delete function has been disabled for now.");
+    setShowPopup(true);
+  };
 
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
-    };
+  // ===== TABLE COLUMNS =====
+  const detailsColumns = [
+    { title: "Class Name", dataIndex: "name", key: "name" },
+    { title: "Number of Subjects", dataIndex: "subjects", key: "subjects" },
+    { title: "Number of Students", dataIndex: "students", key: "students" },
+  ];
 
-    const [showPopup, setShowPopup] = useState(false);
-    const [message, setMessage] = useState("");
-
-    const deleteHandler = (deleteID, address) => {
-        console.log(deleteID);
-        console.log(address);
-        setMessage("Sorry the delete function has been disabled for now.")
-        setShowPopup(true)
-        // dispatch(deleteUser(deleteID, address))
-        //     .then(() => {
-        //         dispatch(getClassStudents(classID));
-        //         dispatch(resetSubjects())
-        //         dispatch(getSubjectList(classID, "ClassSubjects"))
-        //     })
-    }
-
-    const subjectColumns = [
-        { id: 'name', label: 'Subject Name', minWidth: 170 },
-        { id: 'code', label: 'Subject Code', minWidth: 100 },
-    ]
-
-    const subjectRows = subjectsList && subjectsList.length > 0 && subjectsList.map((subject) => {
-        return {
-            name: subject.subName,
-            code: subject.subCode,
-            id: subject._id,
-        };
-    })
-
-    const SubjectsButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Subject")}>
-                    <DeleteIcon color="error" />
-                </IconButton>
-                <BlueButton
-                    variant="contained"
-                    onClick={() => {
-                        navigate(`/Admin/class/subject/${classID}/${row.id}`)
-                    }}
-                >
-                    View
-                </BlueButton >
-            </>
+  const subjectColumns = [
+    { title: "Subject Name", dataIndex: "subName", key: "subName" },
+    { title: "Subject Code", dataIndex: "subCode", key: "subCode" },
+    {
+      title: "Actions",
+      key: "actions",
+      align: "right",
+      render: (_, record) => {
+        const menu = (
+          <Menu>
+            <Menu.Item
+              key="view"
+              icon={<EyeOutlined />}
+              onClick={() =>
+                navigate(`/Admin/class/subject/${classID}/${record.id}`)
+              }
+            >
+              View
+            </Menu.Item>
+            <Menu.Item
+              key="delete"
+              icon={<DeleteOutlined style={{ color: "red" }} />}
+              onClick={() => deleteHandler(record.id, "Subject")}
+            >
+              Delete
+            </Menu.Item>
+          </Menu>
         );
-    };
 
-    const subjectActions = [
-        {
-            icon: <PostAddIcon color="primary" />, name: 'Add New Subject',
-            action: () => navigate("/Admin/addsubject/" + classID)
-        },
-        {
-            icon: <DeleteIcon color="error" />, name: 'Delete All Subjects',
-            action: () => deleteHandler(classID, "SubjectsClass")
-        }
-    ];
-
-    const ClassSubjectsSection = () => {
         return (
-            <>
-                {response ?
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                        <GreenButton
-                            variant="contained"
-                            onClick={() => navigate("/Admin/addsubject/" + classID)}
-                        >
-                            Add Subjects
-                        </GreenButton>
-                    </Box>
-                    :
-                    <>
-                        <Typography variant="h5" gutterBottom>
-                            Subjects List:
-                        </Typography>
-
-                        <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
-                        <SpeedDialTemplate actions={subjectActions} />
-                    </>
-                }
-            </>
-        )
-    }
-
-    const studentColumns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
-    ]
-
-    const studentRows = sclassStudents.map((student) => {
-        return {
-            name: student.name,
-            rollNum: student.rollNum,
-            id: student._id,
-        };
-    })
-
-    const StudentsButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Student")}>
-                    <PersonRemoveIcon color="error" />
-                </IconButton>
-                <BlueButton
-                    variant="contained"
-                    onClick={() => navigate("/Admin/students/student/" + row.id)}
-                >
-                    View
-                </BlueButton>
-                <PurpleButton
-                    variant="contained"
-                    onClick={() =>
-                        navigate("/Admin/students/student/attendance/" + row.id)
-                    }
-                >
-                    Attendance
-                </PurpleButton>
-            </>
+          <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
+            <Button
+              type="text"
+              icon={
+                <EllipsisOutlined
+                  style={{ fontSize: "18px", transform: "rotate(90deg)" }}
+                />
+              }
+              style={{ padding: 0 }}
+            />
+          </Dropdown>
         );
-    };
+      },
+    },
+  ];
 
-    const studentActions = [
-        {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Student',
-            action: () => navigate("/Admin/class/addstudents/" + classID)
-        },
-        {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Students',
-            action: () => deleteHandler(classID, "StudentsClass")
-        },
-    ];
-
-    const ClassStudentsSection = () => {
-        return (
-            <>
-                {getresponse ? (
-                    <>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                            <GreenButton
-                                variant="contained"
-                                onClick={() => navigate("/Admin/class/addstudents/" + classID)}
-                            >
-                                Add Students
-                            </GreenButton>
-                        </Box>
-                    </>
-                ) : (
-                    <>
-                        <Typography variant="h5" gutterBottom>
-                            Students List:
-                        </Typography>
-
-                        <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
-                        <SpeedDialTemplate actions={studentActions} />
-                    </>
-                )}
-            </>
-        )
-    }
-
-    const ClassTeachersSection = () => {
-        return (
-            <>
-                Teachers
-            </>
-        )
-    }
-
-    const ClassDetailsSection = () => {
-        const numberOfSubjects = subjectsList.length;
-        const numberOfStudents = sclassStudents.length;
-
-        return (
-            <>
-                <Typography variant="h4" align="center" gutterBottom>
-                    Class Details
-                </Typography>
-                <Typography variant="h5" gutterBottom>
-                    This is Class {sclassDetails && sclassDetails.sclassName}
-                </Typography>
-                <Typography variant="h6" gutterBottom>
-                    Number of Subjects: {numberOfSubjects}
-                </Typography>
-                <Typography variant="h6" gutterBottom>
-                    Number of Students: {numberOfStudents}
-                </Typography>
-                {getresponse &&
-                    <GreenButton
-                        variant="contained"
-                        onClick={() => navigate("/Admin/class/addstudents/" + classID)}
-                    >
-                        Add Students
-                    </GreenButton>
-                }
-                {response &&
-                    <GreenButton
-                        variant="contained"
-                        onClick={() => navigate("/Admin/addsubject/" + classID)}
-                    >
-                        Add Subjects
-                    </GreenButton>
-                }
-            </>
+  const studentColumns = [
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Roll Number", dataIndex: "rollNum", key: "rollNum" },
+    {
+      title: "Actions",
+      key: "actions",
+      align: "right",
+      render: (_, record) => {
+        const menu = (
+          <Menu>
+            <Menu.Item
+              key="view"
+              icon={<EyeOutlined />}
+              onClick={() => navigate(`/Admin/students/student/${record.id}`)}
+            >
+              View
+            </Menu.Item>
+            <Menu.Item
+              key="delete"
+              icon={<DeleteOutlined style={{ color: "red" }} />}
+              onClick={() => deleteHandler(record.id, "Student")}
+            >
+              Delete
+            </Menu.Item>
+          </Menu>
         );
-    }
 
-    return (
-        <>
-            {loading ? (
-                <div>Loading...</div>
-            ) : (
-                <>
-                    <Box sx={{ width: '100%', typography: 'body1', }} >
-                        <TabContext value={value}>
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                <TabList onChange={handleChange} sx={{ position: 'fixed', width: '100%', bgcolor: 'background.paper', zIndex: 1 }}>
-                                    <Tab label="Details" value="1" />
-                                    <Tab label="Subjects" value="2" />
-                                    <Tab label="Students" value="3" />
-                                    <Tab label="Teachers" value="4" />
-                                </TabList>
-                            </Box>
-                            <Container sx={{ marginTop: "3rem", marginBottom: "4rem" }}>
-                                <TabPanel value="1">
-                                    <ClassDetailsSection />
-                                </TabPanel>
-                                <TabPanel value="2">
-                                    <ClassSubjectsSection />
-                                </TabPanel>
-                                <TabPanel value="3">
-                                    <ClassStudentsSection />
-                                </TabPanel>
-                                <TabPanel value="4">
-                                    <ClassTeachersSection />
-                                </TabPanel>
-                            </Container>
-                        </TabContext>
-                    </Box>
-                </>
-            )}
-            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </>
-    );
+        return (
+          <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
+            <Button
+              type="text"
+              icon={<EllipsisOutlined style={{ fontSize: "18px", transform: "rotate(90deg)" }} />}
+              style={{ padding: 0 }}
+            />
+          </Dropdown>
+        );
+      },
+    },
+  ];
+
+  const teachersColumns = [
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Subject", dataIndex: "subject", key: "subject" },
+    {
+      title: "Actions",
+      key: "actions",
+      align: "right",
+      render: (_, record) => (
+        <Space>
+          <Button type="primary" icon={<EyeOutlined />} />
+          <Popconfirm
+            title="Delete this teacher?"
+            onConfirm={() => deleteHandler(record.id, "Teacher")}
+          >
+            <Button danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  // ===== TABLE DATA =====
+  const detailsData = [
+    {
+      key: classID,
+      name: sclassDetails?.sclassName || "-",
+      subjects: subjectsList.length,
+      students: sclassStudents.length,
+    },
+  ];
+
+  const subjectData =
+    subjectsList?.map((sub) => ({
+      key: sub._id,
+      id: sub._id,
+      subName: sub.subName,
+      subCode: sub.subCode,
+    })) || [];
+
+  const studentData =
+    sclassStudents?.map((student) => ({
+      key: student._id,
+      id: student._id,
+      name: student.name,
+      rollNum: student.rollNum,
+    })) || [];
+
+  const teachersData = [];
+
+  return (
+    <>
+      {loading ? (
+        <Text>Loading...</Text>
+      ) : (
+        <Tabs defaultActiveKey="1">
+          <TabPane tab="Details" key="1">
+            <div style={{ textAlign: "right", marginBottom: 16 }}>
+              <Button
+                type="primary"
+                icon={<UserAddOutlined />}
+                onClick={() => navigate(`/Admin/class/addstudents/${classID}`)}
+                style={{ marginRight: 8 }}
+              >
+                Add Students
+              </Button>
+              <Button
+                type="primary"
+                icon={<FileAddOutlined />}
+                onClick={openDrawer}
+              >
+                Add Subjects
+              </Button>
+            </div>
+            <Table
+              columns={detailsColumns}
+              dataSource={detailsData}
+              pagination={false}
+              bordered
+              showHeader={detailsData.length > 0}
+              locale={{ emptyText: "No Classes Found" }}
+            />
+          </TabPane>
+
+       
+          <TabPane tab="Subjects" key="2">
+            <div style={{ textAlign: "right", marginBottom: 16 }}>
+              <Button
+                type="primary"
+                icon={<FileAddOutlined />}
+                onClick={openDrawer}
+              >
+                Add Subject
+              </Button>
+            </div>
+            <Table
+              columns={subjectColumns}
+              dataSource={subjectData}
+              pagination={false}
+              bordered
+              showHeader={subjectData.length > 0}
+              locale={{ emptyText: "No Subjects Found" }}
+            />
+          </TabPane>
+
+    
+          <TabPane tab="Students" key="3">
+            <div style={{ textAlign: "right", marginBottom: 16 }}>
+              <Button
+                type="primary"
+                icon={<UserAddOutlined />}
+                onClick={() => navigate(`/Admin/class/addstudents/${classID}`)}
+              >
+                Add Student
+              </Button>
+            </div>
+            <Table
+              columns={studentColumns}
+              dataSource={studentData}
+              pagination={false}
+              bordered
+              showHeader={studentData.length > 0}
+              locale={{ emptyText: "No Students Found" }}
+            />
+          </TabPane>
+
+        
+          <TabPane tab="Teachers" key="4">
+            <Table
+              columns={teachersColumns}
+              dataSource={teachersData}
+              pagination={false}
+              bordered
+              showHeader={teachersData.length > 0}
+              locale={{ emptyText: "No Teachers Found" }}
+            />
+          </TabPane>
+        </Tabs>
+      )}
+
+      <Popup message={popupMessage} setShowPopup={setShowPopup} showPopup={showPopup} />
+
+    
+      <Drawer
+        title="Add Subjects"
+        placement="right"
+        width={500}
+        onClose={closeDrawer}
+        open={drawerVisible}
+        destroyOnClose
+        footer={null}
+      >
+        <SubjectForm closeDrawer={closeDrawer} sclassName={classID} />
+      </Drawer>
+    </>
+  );
 };
 
 export default ClassDetails;

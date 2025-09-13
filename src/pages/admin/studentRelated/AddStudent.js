@@ -1,142 +1,123 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { registerUser } from '../../../redux/userRelated/userHandle';
-import Popup from '../../../components/Popup';
-import { underControl } from '../../../redux/userRelated/userSlice';
-import { getAllSclasses } from '../../../redux/sclassRelated/sclassHandle';
-import { CircularProgress } from '@mui/material';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "../../../redux/userRelated/userHandle";
+import { underControl } from "../../../redux/userRelated/userSlice";
+import { Form, Input, Button, Select, Spin, message as antMessage } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
-const AddStudent = ({ situation }) => {
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
-    const params = useParams()
+const { Option } = Select;
 
-    const userState = useSelector(state => state.user);
-    const { status, currentUser, response, error } = userState;
-    const { sclassesList } = useSelector((state) => state.sclass);
+const AddStudent = ({ classId, closeModal }) => {
+  const dispatch = useDispatch();
+  const { currentUser, status, response } = useSelector((state) => state.user);
+  const { sclassesList } = useSelector((state) => state.sclass);
 
-    const [name, setName] = useState('');
-    const [rollNum, setRollNum] = useState('');
-    const [password, setPassword] = useState('')
-    const [className, setClassName] = useState('')
-    const [sclassName, setSclassName] = useState('')
+  const adminID = currentUser._id;
+  const role = "Student";
+  const attendance = [];
 
-    const adminID = currentUser._id
-    const role = "Student"
-    const attendance = []
+  const [loader, setLoader] = useState(false);
+  const [form] = Form.useForm();
 
-    useEffect(() => {
-        if (situation === "Class") {
-            setSclassName(params.id);
-        }
-    }, [params.id, situation]);
+  useEffect(() => {
+    if (classId && sclassesList.length > 0) {
+      const selectedClass = sclassesList.find((c) => c._id === classId);
+      if (selectedClass) {
+        form.setFieldsValue({ className: selectedClass.sclassName });
+      }
+    }
+  }, [classId, sclassesList, form]);
 
-    const [showPopup, setShowPopup] = useState(false);
-    const [message, setMessage] = useState("");
-    const [loader, setLoader] = useState(false)
+  const onFinish = (values) => {
+    setLoader(true);
 
-    useEffect(() => {
-        dispatch(getAllSclasses(adminID, "Sclass"));
-    }, [adminID, dispatch]);
+    const sclass = classId
+      ? classId
+      : sclassesList.find((c) => c.sclassName === values.className)?._id;
 
-    const changeHandler = (event) => {
-        if (event.target.value === 'Select Class') {
-            setClassName('Select Class');
-            setSclassName('');
-        } else {
-            const selectedClass = sclassesList.find(
-                (classItem) => classItem.sclassName === event.target.value
-            );
-            setClassName(selectedClass.sclassName);
-            setSclassName(selectedClass._id);
-        }
+    if (!sclass) {
+      antMessage.error("Please select a valid class");
+      setLoader(false);
+      return;
     }
 
-    const fields = { name, rollNum, password, sclassName, adminID, role, attendance }
+    const fields = {
+      name: values.name,
+      rollNum: values.rollNum,
+      password: values.password,
+      sclassName: sclass,
+      adminID,
+      role,
+      attendance,
+    };
 
-    const submitHandler = (event) => {
-        event.preventDefault()
-        if (sclassName === "") {
-            setMessage("Please select a classname")
-            setShowPopup(true)
-        }
-        else {
-            setLoader(true)
-            dispatch(registerUser(fields, role))
-        }
-    }
+    dispatch(registerUser(fields, role))
+      .then(() => {
+        dispatch(underControl());
+        setLoader(false);
+        antMessage.success("Student added successfully!");
+        closeModal();
+      })
+      .catch(() => {
+        setLoader(false);
+        antMessage.error(response || "Failed to add student");
+      });
+  };
 
-    useEffect(() => {
-        if (status === 'added') {
-            dispatch(underControl())
-            navigate(-1)
-        }
-        else if (status === 'failed') {
-            setMessage(response)
-            setShowPopup(true)
-            setLoader(false)
-        }
-        else if (status === 'error') {
-            setMessage("Network Error")
-            setShowPopup(true)
-            setLoader(false)
-        }
-    }, [status, navigate, error, response, dispatch]);
+  return (
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={onFinish}
+      initialValues={{ className: "" }}
+    >
+      <Form.Item
+        label="Name"
+        name="name"
+        rules={[{ required: true, message: "Please enter student's name" }]}
+      >
+        <Input placeholder="Enter student's name" />
+      </Form.Item>
 
-    return (
-        <>
-            <div className="register">
-                <form className="registerForm" onSubmit={submitHandler}>
-                    <span className="registerTitle">Add Student</span>
-                    <label>Name</label>
-                    <input className="registerInput" type="text" placeholder="Enter student's name..."
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        autoComplete="name" required />
+      {!classId && (
+        <Form.Item
+          label="Class"
+          name="className"
+          rules={[{ required: true, message: "Please select a class" }]}
+        >
+          <Select placeholder="Select Class">
+            {sclassesList.map((c) => (
+              <Option key={c._id} value={c.sclassName}>
+                {c.sclassName}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+      )}
 
-                    {
-                        situation === "Student" &&
-                        <>
-                            <label>Class</label>
-                            <select
-                                className="registerInput"
-                                value={className}
-                                onChange={changeHandler} required>
-                                <option value='Select Class'>Select Class</option>
-                                {sclassesList.map((classItem, index) => (
-                                    <option key={index} value={classItem.sclassName}>
-                                        {classItem.sclassName}
-                                    </option>
-                                ))}
-                            </select>
-                        </>
-                    }
+      <Form.Item
+        label="Roll Number"
+        name="rollNum"
+        rules={[{ required: true, message: "Please enter roll number" }]}
+      >
+        <Input type="number" placeholder="Enter Roll Number" />
+      </Form.Item>
 
-                    <label>Roll Number</label>
-                    <input className="registerInput" type="number" placeholder="Enter student's Roll Number..."
-                        value={rollNum}
-                        onChange={(event) => setRollNum(event.target.value)}
-                        required />
+      <Form.Item
+        label="Password"
+        name="password"
+        rules={[{ required: true, message: "Please enter password" }]}
+      >
+        <Input.Password placeholder="Enter password" />
+      </Form.Item>
 
-                    <label>Password</label>
-                    <input className="registerInput" type="password" placeholder="Enter student's password..."
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                        autoComplete="new-password" required />
+      <Form.Item>
+        <Button type="primary" htmlType="submit" block disabled={loader}>
+          {loader ? <Spin indicator={<LoadingOutlined />} /> : "Add Student"}
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
 
-                    <button className="registerButton" type="submit" disabled={loader}>
-                        {loader ? (
-                            <CircularProgress size={24} color="inherit" />
-                        ) : (
-                            'Add'
-                        )}
-                    </button>
-                </form>
-            </div>
-            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </>
-    )
-}
-
-export default AddStudent
+export default AddStudent;
