@@ -1,211 +1,220 @@
-import React, { useEffect, useState } from 'react'
-import { getClassStudents, getSubjectDetails } from '../../../redux/sclassRelated/sclassHandle';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { Box, Tab, Container, Typography, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
-import { BlueButton, GreenButton, PurpleButton } from '../../../components/buttonStyles';
-import TableTemplate from '../../../components/TableTemplate';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
+import React, { useEffect, useState } from "react";
+import { getClassStudents, getSubjectDetails } from "../../../redux/sclassRelated/sclassHandle";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Tabs,
+  Card,
+  Table,
+  Button,
+  Typography,
+  Dropdown,
+  Menu,
+  Popconfirm,
+  message,
+} from "antd";
+import {
+  EyeOutlined,
+  UserAddOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  EllipsisOutlined,
+} from "@ant-design/icons";
 
-import InsertChartIcon from '@mui/icons-material/InsertChart';
-import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+const { Title } = Typography;
 
 const ViewSubject = () => {
-  const navigate = useNavigate()
-  const params = useParams()
+  const navigate = useNavigate();
+  const params = useParams();
   const dispatch = useDispatch();
-  const { subloading, subjectDetails, sclassStudents, getresponse, error } = useSelector((state) => state.sclass);
 
-  const { classID, subjectID } = params
+  const { subloading, subjectDetails, sclassStudents, getresponse, error } =
+    useSelector((state) => state.sclass);
+
+  const { classID, subjectID } = params;
 
   useEffect(() => {
     dispatch(getSubjectDetails(subjectID, "Subject"));
     dispatch(getClassStudents(classID));
   }, [dispatch, subjectID, classID]);
 
-  if (error) {
-    console.log(error)
-  }
+  if (error) console.log(error);
 
-  const [value, setValue] = useState('1');
+  const numberOfStudents = sclassStudents?.length || 0;
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+  // 🟢 Handlers
+  const deleteHandler = (id) => {
+    message.warning("Delete function disabled for now");
+    console.log("Delete:", id);
   };
 
-  const [selectedSection, setSelectedSection] = useState('attendance');
-  const handleSectionChange = (event, newSection) => {
-    setSelectedSection(newSection);
-  };
-
+  // 🟢 Student Table Columns
   const studentColumns = [
-    { id: 'rollNum', label: 'Roll No.', minWidth: 100 },
-    { id: 'name', label: 'Name', minWidth: 170 },
-  ]
-
-  const studentRows = sclassStudents.map((student) => {
-    return {
-      rollNum: student.rollNum,
-      name: student.name,
-      id: student._id,
-    };
-  })
-
-  const StudentsAttendanceButtonHaver = ({ row }) => {
-    return (
-      <>
-        <BlueButton
-          variant="contained"
-          onClick={() => navigate("/Admin/students/student/" + row.id)}
-        >
-          View
-        </BlueButton>
-        <PurpleButton
-          variant="contained"
-          onClick={() =>
-            navigate(`/Admin/subject/student/attendance/${row.id}/${subjectID}`)
-          }
-        >
-          Take Attendance
-        </PurpleButton>
-      </>
-    );
-  };
-
-  const StudentsMarksButtonHaver = ({ row }) => {
-    return (
-      <>
-        <BlueButton
-          variant="contained"
-          onClick={() => navigate("/Admin/students/student/" + row.id)}
-        >
-          View
-        </BlueButton>
-        <PurpleButton variant="contained"
-          onClick={() => navigate(`/Admin/subject/student/marks/${row.id}/${subjectID}`)}>
-          Provide Marks
-        </PurpleButton>
-      </>
-    );
-  };
-
-  const SubjectStudentsSection = () => {
-    return (
-      <>
-        {getresponse ? (
-          <>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-              <GreenButton
-                variant="contained"
-                onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+    { title: "Roll No.", dataIndex: "rollNum", key: "rollNum" },
+    { title: "Name", dataIndex: "name", key: "name" },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, row) => {
+        const menu = (
+          <Menu>
+            <Menu.Item
+              key="view"
+              icon={<EyeOutlined />}
+              onClick={() => navigate("/Admin/students/student/" + row.id)}
+            >
+              View
+            </Menu.Item>
+            <Menu.Item
+              key="attendance"
+              onClick={() =>
+                navigate(`/Admin/subject/student/attendance/${row.id}/${subjectID}`)
+              }
+            >
+              Take Attendance
+            </Menu.Item>
+            <Menu.Item
+              key="marks"
+              onClick={() =>
+                navigate(`/Admin/subject/student/marks/${row.id}/${subjectID}`)
+              }
+            >
+              Provide Marks
+            </Menu.Item>
+            <Menu.Item key="delete" icon={<DeleteOutlined style={{ color: "red" }} />}>
+              <Popconfirm
+                title="Delete Student?"
+                onConfirm={() => deleteHandler(row.id)}
+                okText="Yes"
+                cancelText="No"
               >
-                Add Students
-              </GreenButton>
-            </Box>
-          </>
-        ) : (
-          <>
-            <Typography variant="h5" gutterBottom>
-              Students List:
-            </Typography>
+                Delete
+              </Popconfirm>
+            </Menu.Item>
+          </Menu>
+        );
 
-            {selectedSection === 'attendance' &&
-              <TableTemplate buttonHaver={StudentsAttendanceButtonHaver} columns={studentColumns} rows={studentRows} />
-            }
-            {selectedSection === 'marks' &&
-              <TableTemplate buttonHaver={StudentsMarksButtonHaver} columns={studentColumns} rows={studentRows} />
-            }
+        return (
+          <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
+            <Button
+              type="text"
+              icon={<EllipsisOutlined style={{ fontSize: "18px", transform: "rotate(90deg)" }} />}
+            />
+          </Dropdown>
+        );
+      },
+    },
+  ];
 
-            <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-              <BottomNavigation value={selectedSection} onChange={handleSectionChange} showLabels>
-                <BottomNavigationAction
-                  label="Attendance"
-                  value="attendance"
-                  icon={selectedSection === 'attendance' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
-                />
-                <BottomNavigationAction
-                  label="Marks"
-                  value="marks"
-                  icon={selectedSection === 'marks' ? <InsertChartIcon /> : <InsertChartOutlinedIcon />}
-                />
-              </BottomNavigation>
-            </Paper>
+  const studentRows = sclassStudents?.map((student) => ({
+    key: student._id,
+    rollNum: student.rollNum,
+    name: student.name,
+    id: student._id,
+  }));
 
-          </>
-        )}
-      </>
-    )
-  }
 
-  const SubjectDetailsSection = () => {
-    const numberOfStudents = sclassStudents.length;
-
-    return (
-      <>
-        <Typography variant="h4" align="center" gutterBottom>
+  const SubjectDetailsSection = () => (
+    <Card>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <Title level={4} style={{ margin: 0 }}>
           Subject Details
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Subject Name : {subjectDetails && subjectDetails.subName}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Subject Code : {subjectDetails && subjectDetails.subCode}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Subject Sessions : {subjectDetails && subjectDetails.sessions}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Number of Students: {numberOfStudents}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Class Name : {subjectDetails && subjectDetails.sclassName && subjectDetails.sclassName.sclassName}
-        </Typography>
-        {subjectDetails && subjectDetails.teacher ?
-          <Typography variant="h6" gutterBottom>
-            Teacher Name : {subjectDetails.teacher.name}
-          </Typography>
-          :
-          <GreenButton variant="contained"
-            onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
+        </Title>
+        {!subjectDetails?.teacher && (
+          <Button
+            type="primary"
+            icon={<UserAddOutlined />}
+            onClick={() =>
+              navigate("/Admin/teachers/addteacher/" + subjectDetails._id)
+            }
+          >
             Add Subject Teacher
-          </GreenButton>
-        }
-      </>
-    );
-  }
+          </Button>
+        )}
+      </div>
+
+      <Table
+        bordered
+        showHeader={false}
+        pagination={false}
+        dataSource={[
+          { key: "1", label: "Subject Name", value: subjectDetails?.subName },
+          { key: "2", label: "Subject Code", value: subjectDetails?.subCode },
+          { key: "3", label: "Sessions", value: subjectDetails?.sessions },
+          { key: "4", label: "Number of Students", value: numberOfStudents },
+          { key: "5", label: "Class Name", value: subjectDetails?.sclassName?.sclassName },
+          {
+            key: "6",
+            label: "Teacher",
+            value: subjectDetails?.teacher?.name || "Not Assigned",
+          },
+        ]}
+        columns={[
+          {
+            title: "Label",
+            dataIndex: "label",
+            key: "label",
+            width: "40%",
+            render: (text) => <b>{text}</b>,
+          },
+          {
+            title: "Value",
+            dataIndex: "value",
+            key: "value",
+          },
+        ]}
+      />
+    </Card>
+  );
+
+  // 🟢 Students Section
+  const SubjectStudentsSection = () => (
+    <Card
+      title="Students List"
+      extra={
+        getresponse && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+          >
+            Add Students
+          </Button>
+        )
+      }
+    >
+      <Table
+        columns={studentColumns}
+        dataSource={studentRows}
+        pagination={{ pageSize: 10 }}
+        bordered
+      />
+    </Card>
+  );
 
   return (
     <>
-      {subloading ?
-        < div > Loading...</div >
-        :
-        <>
-          <Box sx={{ width: '100%', typography: 'body1', }} >
-            <TabContext value={value}>
-              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <TabList onChange={handleChange} sx={{ position: 'fixed', width: '100%', bgcolor: 'background.paper', zIndex: 1 }}>
-                  <Tab label="Details" value="1" />
-                  <Tab label="Students" value="2" />
-                </TabList>
-              </Box>
-              <Container sx={{ marginTop: "3rem", marginBottom: "4rem" }}>
-                <TabPanel value="1">
-                  <SubjectDetailsSection />
-                </TabPanel>
-                <TabPanel value="2">
-                  <SubjectStudentsSection />
-                </TabPanel>
-              </Container>
-            </TabContext>
-          </Box>
-        </>
-      }
+      {subloading ? (
+        <div>Loading...</div>
+      ) : (
+        <Tabs defaultActiveKey="1">
+          <Tabs.TabPane tab="Details" key="1">
+            <SubjectDetailsSection />
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Students" key="2">
+            <SubjectStudentsSection />
+          </Tabs.TabPane>
+        </Tabs>
+      )}
     </>
-  )
-}
+  );
+};
 
-export default ViewSubject
+export default ViewSubject;

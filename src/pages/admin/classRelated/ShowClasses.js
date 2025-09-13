@@ -7,6 +7,7 @@ import {
   message,
   Spin,
   Modal,
+  Drawer,
 } from "antd";
 import {
   DeleteOutlined,
@@ -22,22 +23,21 @@ import { deleteUser } from "../../../redux/userRelated/userHandle";
 import { getAllSclasses } from "../../../redux/sclassRelated/sclassHandle";
 import AddClass from "./AddClass";
 import AddStudent from "../studentRelated/AddStudent";
-
+import SubjectForm from "../subjectRelated/SubjectForm";
 
 const ShowClasses = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { sclassesList, loading, error } = useSelector(
-    (state) => state.sclass
-  );
+  const { sclassesList, loading, error } = useSelector((state) => state.sclass);
   const { currentUser } = useSelector((state) => state.user);
 
   const adminID = currentUser._id;
 
-  const [isModalOpen, setIsModalOpen] = useState(false); // Add Class modal
-  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false); // Add Student modal
-  const [selectedClassId, setSelectedClassId] = useState(null); // store selected class
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [isAddSubjectModalOpen, setIsAddSubjectModalOpen] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState(null);
 
   useEffect(() => {
     dispatch(getAllSclasses(adminID, "Sclass"));
@@ -75,7 +75,10 @@ const ShowClasses = () => {
         <Menu.Item
           key="add-subject"
           icon={<FileAddOutlined />}
-          onClick={() => navigate("/Admin/addsubject/" + row.id)}
+          onClick={() => {
+            setSelectedClassId(row.id);
+            setIsAddSubjectModalOpen(true);
+          }}
         >
           Add Subjects
         </Menu.Item>
@@ -83,8 +86,8 @@ const ShowClasses = () => {
           key="add-student"
           icon={<UserAddOutlined />}
           onClick={() => {
-            setSelectedClassId(row.id); // store class ID
-            setIsAddStudentModalOpen(true); // open modal
+            setSelectedClassId(row.id);
+            setIsAddStudentModalOpen(true);
           }}
         >
           Add Student
@@ -152,7 +155,6 @@ const ShowClasses = () => {
         </>
       )}
 
-      {/* Add Class Modal */}
       <Modal
         title="Create New Class"
         open={isModalOpen}
@@ -163,7 +165,6 @@ const ShowClasses = () => {
         <AddClass closeModal={() => setIsModalOpen(false)} />
       </Modal>
 
-      {/* Add Student Modal */}
       <Modal
         title="Add Students"
         open={isAddStudentModalOpen}
@@ -176,6 +177,20 @@ const ShowClasses = () => {
           closeModal={() => setIsAddStudentModalOpen(false)}
         />
       </Modal>
+
+    <Drawer
+  title="Add Subjects"
+  placement="right"
+  width={500}
+  onClose={() => setIsAddSubjectModalOpen(false)}
+  open={isAddSubjectModalOpen}
+  destroyOnClose
+>
+  <SubjectForm
+    classId={selectedClassId}   
+    closeModal={() => setIsAddSubjectModalOpen(false)}
+  />
+</Drawer>
     </>
   );
 };

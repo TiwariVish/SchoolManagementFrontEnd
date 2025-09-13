@@ -1,99 +1,102 @@
-import { Container, Grid, Paper } from '@mui/material'
-import SeeNotice from '../../components/SeeNotice';
-import CountUp from 'react-countup';
-import styled from 'styled-components';
+import React, { useEffect } from "react";
+import { Row, Col, Card, Typography } from "antd";
+import SeeNotice from "../../components/SeeNotice";
+import CountUp from "react-countup";
 import Students from "../../assets/img1.png";
 import Lessons from "../../assets/subjects.svg";
 import Tests from "../../assets/assignment.svg";
 import Time from "../../assets/time.svg";
-import { getClassStudents, getSubjectDetails } from '../../redux/sclassRelated/sclassHandle';
-import { useDispatch, useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { getClassStudents, getSubjectDetails } from "../../redux/sclassRelated/sclassHandle";
+import { useDispatch, useSelector } from "react-redux";
+
+const { Title, Text } = Typography;
 
 const TeacherHomePage = () => {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-    const { currentUser } = useSelector((state) => state.user);
-    const { subjectDetails, sclassStudents } = useSelector((state) => state.sclass);
+  const { currentUser } = useSelector((state) => state.user);
+  const { subjectDetails, sclassStudents } = useSelector((state) => state.sclass);
 
-    const classID = currentUser.teachSclass?._id
-    const subjectID = currentUser.teachSubject?._id
+  const classID = currentUser?.teachSclass?._id;
+  const subjectID = currentUser?.teachSubject?._id;
 
-    useEffect(() => {
-        dispatch(getSubjectDetails(subjectID, "Subject"));
-        dispatch(getClassStudents(classID));
-    }, [dispatch, subjectID, classID]);
+  useEffect(() => {
+    if (subjectID) dispatch(getSubjectDetails(subjectID, "Subject"));
+    if (classID) dispatch(getClassStudents(classID));
+  }, [dispatch, subjectID, classID]);
 
-    const numberOfStudents = sclassStudents && sclassStudents.length;
-    const numberOfSessions = subjectDetails && subjectDetails.sessions
+  const numberOfStudents = sclassStudents?.length || 0;
+  const numberOfSessions = subjectDetails?.sessions || 0;
 
-    return (
-        <>
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Students} alt="Students" />
-                            <Title>
-                                Class Students
-                            </Title>
-                            <Data start={0} end={numberOfStudents} duration={2.5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Lessons} alt="Lessons" />
-                            <Title>
-                                Total Lessons
-                            </Title>
-                            <Data start={0} end={numberOfSessions} duration={5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Tests} alt="Tests" />
-                            <Title>
-                                Tests Taken
-                            </Title>
-                            <Data start={0} end={24} duration={4} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Time} alt="Time" />
-                            <Title>
-                                Total Hours
-                            </Title>
-                            <Data start={0} end={30} duration={4} suffix="hrs"/>                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                            <SeeNotice />
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Container>
-        </>
-    )
-}
+  const cards = [
+    {
+      title: "Class Students",
+      value: numberOfStudents,
+      img: Students,
+      duration: 2.5,
+    },
+    {
+      title: "Total Lessons",
+      value: numberOfSessions,
+      img: Lessons,
+      duration: 5,
+    },
+    {
+      title: "Tests Taken",
+      value: 24,
+      img: Tests,
+      duration: 4,
+    },
+    {
+      title: "Total Hours",
+      value: 30,
+      img: Time,
+      duration: 4,
+      suffix: " hrs",
+    },
+  ];
 
-const StyledPaper = styled(Paper)`
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  height: 200px;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
-`;
+  return (
+    <div style={{ padding: 24 }}>
+      <Row gutter={[16, 16]}>
+        {cards.map((card, index) => (
+          <Col xs={24} sm={12} md={12} lg={6} key={index}>
+            <Card
+              bordered={false}
+              style={{
+                textAlign: "center",
+                borderRadius: 12,
+                height: 200,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <img src={card.img} alt={card.title} style={{ width: 50, marginBottom: 12 }} />
+              <Title level={5}>{card.title}</Title>
+              <Text style={{ fontSize: "1.4rem", color: "green", fontWeight: "bold" }}>
+                <CountUp
+                  start={0}
+                  end={card.value}
+                  duration={card.duration}
+                  suffix={card.suffix || ""}
+                />
+              </Text>
+            </Card>
+          </Col>
+        ))}
 
-const Title = styled.p`
-  font-size: 1.25rem;
-`;
+ 
+        <Col span={24}>
+          <Card
+            title="Notices"
+            bordered={false}
+            style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
+          >
+            <SeeNotice />
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  );
+};
 
-const Data = styled(CountUp)`
-  font-size: calc(1.3rem + .6vw);
-  color: green;
-`;
-
-export default TeacherHomePage
+export default TeacherHomePage;

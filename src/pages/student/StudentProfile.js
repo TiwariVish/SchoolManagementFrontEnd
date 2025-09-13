@@ -1,106 +1,67 @@
-import React from 'react'
-import styled from 'styled-components';
-import { Card, CardContent, Typography, Grid, Box, Avatar, Container, Paper } from '@mui/material';
+import React from 'react';
 import { useSelector } from 'react-redux';
+import { Avatar, Card, Typography, Row, Col, Divider, Space } from 'antd';
+
+const { Title, Text } = Typography;
 
 const StudentProfile = () => {
   const { currentUser, response, error } = useSelector((state) => state.user);
 
-  if (response) { console.log(response) }
-  else if (error) { console.log(error) }
+  if (response) console.log(response);
+  if (error) console.log(error);
 
-  const sclassName = currentUser.sclassName
-  const studentSchool = currentUser.school
+  const sclassName = currentUser?.sclassName;
+  const studentSchool = currentUser?.school;
 
   return (
-    <>
-      <Container maxWidth="md">
-        <StyledPaper elevation={3}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="center">
-                <Avatar alt="Student Avatar" sx={{ width: 150, height: 150 }}>
-                  {String(currentUser.name).charAt(0)}
-                </Avatar>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="center">
-                <Typography variant="h5" component="h2" textAlign="center">
-                  {currentUser.name}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="center">
-                <Typography variant="subtitle1" component="p" textAlign="center">
-                  Student Roll No: {currentUser.rollNum}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="center">
-                <Typography variant="subtitle1" component="p" textAlign="center">
-                  Class: {sclassName.sclassName}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="center">
-                <Typography variant="subtitle1" component="p" textAlign="center">
-                  School: {studentSchool.schoolName}
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </StyledPaper>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Personal Information
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" component="p">
-                  <strong>Date of Birth:</strong> January 1, 2000
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" component="p">
-                  <strong>Gender:</strong> Male
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" component="p">
-                  <strong>Email:</strong> john.doe@example.com
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" component="p">
-                  <strong>Phone:</strong> (123) 456-7890
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" component="p">
-                  <strong>Address:</strong> 123 Main Street, City, Country
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" component="p">
-                  <strong>Emergency Contact:</strong> (987) 654-3210
-                </Typography>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </Container>
-    </>
-  )
-}
+    <Space direction="vertical" size="large" style={{ width: '100%', padding: 20 }}>
+      {/* Profile Header */}
+      <Card bordered={false} style={{ textAlign: 'center' }}>
+        <Avatar 
+          size={150} 
+          style={{ backgroundColor: '#1677ff', fontSize: 48, marginBottom: 16 }}
+        >
+          {String(currentUser?.name).charAt(0)}
+        </Avatar>
+        <Title level={3}>{currentUser?.name}</Title>
+        <Text type="secondary">Roll No: {currentUser?.rollNum}</Text>
+        <br />
+        <Text type="secondary">Class: {sclassName?.sclassName}</Text>
+        <br />
+        <Text type="secondary">School: {studentSchool?.schoolName}</Text>
+      </Card>
 
-export default StudentProfile
+      {/* Personal Information */}
+      <Card title="Personal Information" bordered>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12}>
+            <Text strong>Date of Birth: </Text>
+            <Text>January 1, 2000</Text>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Text strong>Gender: </Text>
+            <Text>Male</Text>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Text strong>Email: </Text>
+            <Text>john.doe@example.com</Text>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Text strong>Phone: </Text>
+            <Text>(123) 456-7890</Text>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Text strong>Address: </Text>
+            <Text>123 Main Street, City, Country</Text>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Text strong>Emergency Contact: </Text>
+            <Text>(987) 654-3210</Text>
+          </Col>
+        </Row>
+      </Card>
+    </Space>
+  );
+};
 
-const StyledPaper = styled(Paper)`
-  padding: 20px;
-  margin-bottom: 20px;
-`;
+export default StudentProfile;

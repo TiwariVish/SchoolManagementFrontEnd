@@ -153,8 +153,8 @@ const ViewStudent = () => {
                             <StyledTableRow>
                                 <StyledTableCell>Subject</StyledTableCell>
                                 <StyledTableCell>Present</StyledTableCell>
-                                <StyledTableCell>Total Sessions</StyledTableCell>
-                                <StyledTableCell>Attendance Percentage</StyledTableCell>
+                                <StyledTableCell>Total Sessions </StyledTableCell>
+                                <StyledTableCell>Attendance Percentage </StyledTableCell>
                                 <StyledTableCell align="center">Actions</StyledTableCell>
                             </StyledTableRow>
                         </TableHead>

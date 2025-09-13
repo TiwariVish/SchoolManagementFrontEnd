@@ -1,64 +1,49 @@
-import * as React from 'react';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
+import { Menu } from 'antd';
+import {
+  HomeOutlined,
+  LogoutOutlined,
+  UserOutlined,
+  NotificationOutlined,
+  BookOutlined,
+  ProfileOutlined,
+} from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 
-import HomeIcon from '@mui/icons-material/Home';
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
-import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-
 const StudentSideBar = () => {
-    const location = useLocation();
-    return (
-        <>
-            <React.Fragment>
-                <ListItemButton component={Link} to="/">
-                    <ListItemIcon>
-                        <HomeIcon color={location.pathname === ("/" || "/Student/dashboard") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Home" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Student/subjects">
-                    <ListItemIcon>
-                        <AssignmentIcon color={location.pathname.startsWith("/Student/subjects") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Subjects" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Student/attendance">
-                    <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith("/Student/attendance") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Attendance" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Student/complain">
-                    <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Student/complain") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Complain" />
-                </ListItemButton>
-            </React.Fragment>
-            <Divider sx={{ my: 1 }} />
-            <React.Fragment>
-                <ListSubheader component="div" inset>
-                    User
-                </ListSubheader>
-                <ListItemButton component={Link} to="/Student/profile">
-                    <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Student/profile") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Profile" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/logout">
-                    <ListItemIcon>
-                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Logout" />
-                </ListItemButton>
-            </React.Fragment>
-        </>
-    )
-}
+  const location = useLocation();
 
-export default StudentSideBar
+  return (
+    <Menu
+      mode="inline"
+      theme="dark"  // 👈 dark theme matches Sider background
+      selectedKeys={[location.pathname]}
+      style={{ height: '100%', borderRight: 0 }}
+    >
+      <Menu.Item key="/" icon={<HomeOutlined />}>
+        <Link to="/">Home</Link>
+      </Menu.Item>
+      <Menu.Item key="/Student/subjects" icon={<BookOutlined />}>
+        <Link to="/Student/subjects">Subjects</Link>
+      </Menu.Item>
+      <Menu.Item key="/Student/attendance" icon={<ProfileOutlined />}>
+        <Link to="/Student/attendance">Attendance</Link>
+      </Menu.Item>
+      <Menu.Item key="/Student/complain" icon={<NotificationOutlined />}>
+        <Link to="/Student/complain">Complain</Link>
+      </Menu.Item>
+
+      <Menu.Divider />
+
+      <Menu.ItemGroup key="user" title="User">
+        <Menu.Item key="/Student/profile" icon={<UserOutlined />}>
+          <Link to="/Student/profile">Profile</Link>
+        </Menu.Item>
+        <Menu.Item key="/logout" icon={<LogoutOutlined />}>
+          <Link to="/logout">Logout</Link>
+        </Menu.Item>
+      </Menu.ItemGroup>
+    </Menu>
+  );
+};
+
+export default StudentSideBar;
