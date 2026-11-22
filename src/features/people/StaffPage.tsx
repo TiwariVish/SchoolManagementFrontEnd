@@ -45,8 +45,8 @@ import { useDebounce } from '@/lib/use-debounce';
 
 const CATEGORY_TABS = [
   { value: '', label: 'All' },
-  { value: 'TEACHING', label: 'Teaching' },
-  { value: 'NON_TEACHING', label: 'Non-teaching' },
+  { value: 'TEACHING', label: 'Teachers / faculty' },
+  { value: 'NON_TEACHING', label: 'Unit / office staff' },
 ];
 
 export function StaffPage() {
@@ -68,7 +68,7 @@ export function StaffPage() {
     <>
       <PageHeader
         title="Staff"
-        subtitle={`${plural(labels.teacher)} and non-teaching staff. Create a login so they can see their own classes.`}
+        subtitle={`Manage ${plural(labels.teacher).toLowerCase()} and unit / office staff for your school or college. Create a login so teachers can see their classes.`}
         actions={
           canManage && (
             <Button variant="contained" startIcon={<PersonAddAlt1RoundedIcon />} onClick={() => setAdding(true)}>

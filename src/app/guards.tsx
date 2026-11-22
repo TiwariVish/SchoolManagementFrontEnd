@@ -1,42 +1,41 @@
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import { Box, Button } from '@mui/material';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Link as RouterLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { session } from '@/api/session';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/states';
 import { useAuth } from './auth';
 
-const homeFor = (kind: 'institute' | 'platform') => (kind === 'platform' ? '/platform' : '/');
-
-/** Institute app: signed-in school/college users only. */
+/** Institute app: signed-in school/college users only. Super-admin uses http://localhost:5174. */
 export function RequireAuth() {
   const { status, kind, me } = useAuth();
   const location = useLocation();
 
+  useEffect(() => {
+    if (status === 'authenticated' && kind === 'platform') session.clear();
+  }, [status, kind]);
+
   if (status === 'loading') return <LoadingState height="100vh" />;
-  if (status === 'anonymous') return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
-  if (kind === 'platform') return <Navigate to="/platform" replace />;
+  if (status === 'anonymous' || kind === 'platform') {
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  }
   if (me?.user.mustChangePassword && location.pathname !== '/account/password') {
     return <Navigate to="/account/password" replace />;
   }
   return <Outlet />;
 }
 
-/** Super-admin console: platform sessions only. */
-export function RequirePlatform() {
-  const { status, kind } = useAuth();
-  const location = useLocation();
-
-  if (status === 'loading') return <LoadingState height="100vh" />;
-  if (status === 'anonymous') return <Navigate to="/platform/login" replace state={{ from: location.pathname + location.search }} />;
-  if (kind !== 'platform') return <Navigate to="/" replace />;
-  return <Outlet />;
-}
-
 export function GuestOnly() {
   const { status, kind } = useAuth();
+
+  useEffect(() => {
+    if (status === 'authenticated' && kind === 'platform') session.clear();
+  }, [status, kind]);
+
   if (status === 'loading') return <LoadingState height="100vh" />;
-  if (status === 'authenticated') return <Navigate to={homeFor(kind)} replace />;
+  if (status === 'authenticated' && kind === 'institute') return <Navigate to="/" replace />;
+  if (status === 'authenticated' && kind === 'platform') return <Navigate to="/login" replace />;
   return <Outlet />;
 }
 

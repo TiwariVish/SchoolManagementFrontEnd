@@ -227,6 +227,113 @@ export interface Role {
   permissions: string[];
 }
 
+export type FeeFrequency = 'ONE_TIME' | 'MONTHLY' | 'TERM' | 'ANNUAL';
+export type FeeInvoiceStatus = 'DUE' | 'PARTIAL' | 'PAID' | 'CANCELLED';
+export type PaymentMethod = 'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER' | 'CHEQUE' | 'OTHER';
+
+export interface FeeStructure {
+  id: Id;
+  name: string;
+  code?: string;
+  amount: number;
+  frequency: FeeFrequency;
+  description?: string;
+  isActive: boolean;
+}
+
+export interface FeePayment {
+  amount: number;
+  method: PaymentMethod;
+  paidAt: string;
+  receiptNo: string;
+  note?: string;
+}
+
+export interface FeeInvoice {
+  id: Id;
+  studentId: Id;
+  academicYearId?: Id;
+  feeStructureId?: Id;
+  title: string;
+  amount: number;
+  paidAmount: number;
+  balance: number;
+  dueDate?: string;
+  status: FeeInvoiceStatus;
+  payments: FeePayment[];
+  student: { id: Id; name: string; admissionNo: string } | null;
+}
+
+export interface FeesOverview {
+  due: number;
+  partial: number;
+  paid: number;
+  collected: number;
+  outstanding: number;
+}
+
+export interface SalaryProfileRow {
+  employee: { id: Id; name: string; employeeCode: string; category: string; designation?: string };
+  monthlyAmount: number;
+  isActive: boolean;
+  note?: string;
+  profileId: Id | null;
+}
+
+export interface SalaryPayment {
+  id: Id;
+  employeeId: Id;
+  period: string;
+  amount: number;
+  method: PaymentMethod;
+  paidAt: string;
+  receiptNo: string;
+  note?: string;
+  employee: { id: Id; name: string; employeeCode: string } | null;
+}
+
+export interface PayrollOverview {
+  period: string;
+  staffWithSalary: number;
+  paidThisMonth: number;
+  paidAmountThisMonth: number;
+}
+
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'HALF_DAY' | 'LEAVE' | 'HOLIDAY';
+
+export interface StaffAttendanceRow {
+  employee: {
+    id: Id;
+    name: string;
+    employeeCode: string;
+    category: 'TEACHING' | 'NON_TEACHING';
+    designation?: string;
+    department?: string;
+  };
+  status: AttendanceStatus | null;
+  note?: string;
+  attendanceId: Id | null;
+}
+
+export interface StaffAttendanceDay {
+  date: string;
+  category: 'TEACHING' | 'NON_TEACHING' | null;
+  counts: { present: number; absent: number; halfDay: number; leave: number; holiday: number; unmarked: number };
+  items: StaffAttendanceRow[];
+}
+
+export interface StaffAttendanceSummaryItem {
+  employee: {
+    id: Id;
+    name: string;
+    employeeCode: string;
+    category: 'TEACHING' | 'NON_TEACHING';
+    designation?: string;
+  };
+  counts: Record<AttendanceStatus, number>;
+  markedDays: number;
+}
+
 export interface VersionedSettings<T> {
   section: string;
   data: T;

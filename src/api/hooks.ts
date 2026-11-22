@@ -13,10 +13,19 @@ import type {
   MyTeaching,
   Page,
   Program,
+  AttendanceStatus,
+  FeeInvoice,
+  FeeStructure,
+  FeesOverview,
+  PayrollOverview,
   Role,
+  SalaryPayment,
+  SalaryProfileRow,
   Section,
   SettingsMap,
   SettingsSection,
+  StaffAttendanceDay,
+  StaffAttendanceSummaryItem,
   Student,
   Subject,
   TeachingAssignment,
@@ -76,6 +85,137 @@ export const useRoles = () => useQuery({ queryKey: ['roles'], queryFn: () => get
 
 export const usePermissionCatalog = () =>
   useQuery({ queryKey: ['permissions'], queryFn: () => get<{ key: string; description: string }[]>('/permissions') });
+
+export function useCreateRole() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (body: { name: string; key?: string; permissions: string[] }) =>
+      (await api.post<Role>('/roles', body)).data,
+    onSuccess: () => invalidate(['roles'], ['me']),
+  });
+}
+
+export function useUpdateRole() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async ({ id, ...body }: { id: Id; name?: string; permissions?: string[] }) =>
+      (await api.patch<Role>(`/roles/${id}`, body)).data,
+    onSuccess: () => invalidate(['roles'], ['me']),
+  });
+}
+
+export function useDeleteRole() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (id: Id) => {
+      await api.delete(`/roles/${id}`);
+    },
+    onSuccess: () => invalidate(['roles'], ['me']),
+  });
+}
+
+/* ---------------------------------------- Finance ---------------------------------------- */
+
+export const useFeesOverview = () =>
+  useQuery({ queryKey: ['fees', 'overview'], queryFn: () => get<FeesOverview>('/fees/overview') });
+
+export const useFeeStructures = () =>
+  useQuery({ queryKey: ['fee-structures'], queryFn: () => get<FeeStructure[]>('/fee-structures') });
+
+export function useSaveFeeStructure() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (input: Partial<FeeStructure> & { name?: string; amount?: number; id?: Id }) => {
+      if (input.id) return (await api.patch<FeeStructure>(`/fee-structures/${input.id}`, input)).data;
+      return (await api.post<FeeStructure>('/fee-structures', input)).data;
+    },
+    onSuccess: () => invalidate(['fee-structures']),
+  });
+}
+
+export const useFeeInvoices = (params: Params) =>
+  useQuery({
+    queryKey: ['fee-invoices', clean(params)],
+    queryFn: () => get<Page<FeeInvoice>>('/fee-invoices', params),
+    placeholderData: keepPreviousData,
+  });
+
+export function useGenerateFeeInvoices() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (body: { feeStructureId: Id; sectionId?: Id; studentIds?: Id[]; dueDate?: string; title?: string }) =>
+      (await api.post<{ created: number }>('/fee-invoices/generate', body)).data,
+    onSuccess: () => invalidate(['fee-invoices'], ['fees', 'overview']),
+  });
+}
+
+export function useCollectFee() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async ({ id, ...body }: { id: Id; amount: number; method: string; paidAt?: string; note?: string }) =>
+      (await api.post<FeeInvoice>(`/fee-invoices/${id}/collect`, body)).data,
+    onSuccess: () => invalidate(['fee-invoices'], ['fees', 'overview']),
+  });
+}
+
+export const usePayrollOverview = () =>
+  useQuery({ queryKey: ['payroll', 'overview'], queryFn: () => get<PayrollOverview>('/payroll/overview') });
+
+export const useSalaryProfiles = () =>
+  useQuery({ queryKey: ['salary-profiles'], queryFn: () => get<SalaryProfileRow[]>('/salary-profiles') });
+
+export function useUpsertSalaryProfile() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (body: { employeeId: Id; monthlyAmount: number; isActive?: boolean; note?: string }) =>
+      (await api.post('/salary-profiles', body)).data,
+    onSuccess: () => invalidate(['salary-profiles'], ['payroll', 'overview']),
+  });
+}
+
+export const useSalaryPayments = (params: Params) =>
+  useQuery({
+    queryKey: ['salary-payments', clean(params)],
+    queryFn: () => get<Page<SalaryPayment>>('/salary-payments', params),
+    placeholderData: keepPreviousData,
+  });
+
+export function usePaySalary() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (body: { employeeId: Id; period: string; amount?: number; method: string; paidAt?: string; note?: string }) =>
+      (await api.post<SalaryPayment>('/salary-payments', body)).data,
+    onSuccess: () => invalidate(['salary-payments'], ['payroll', 'overview'], ['salary-profiles']),
+  });
+}
+
+/* -------------------------------------- Attendance -------------------------------------- */
+
+export const useStaffAttendanceDay = (date: string, category?: string) =>
+  useQuery({
+    queryKey: ['staff-attendance', 'day', date, category ?? ''],
+    queryFn: () => get<StaffAttendanceDay>('/staff-attendance/day', { date, category: category || undefined }),
+    enabled: Boolean(date),
+  });
+
+export function useSaveStaffAttendanceDay() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (body: {
+      date: string;
+      entries: { employeeId: Id; status: AttendanceStatus; note?: string }[];
+    }) => (await api.put<StaffAttendanceDay>('/staff-attendance/day', body)).data,
+    onSuccess: (_data, vars) => invalidate(['staff-attendance', 'day', vars.date], ['staff-attendance', 'summary']),
+  });
+}
+
+export const useStaffAttendanceSummary = (params: { from: string; to: string; category?: string; employeeId?: Id }) =>
+  useQuery({
+    queryKey: ['staff-attendance', 'summary', params],
+    queryFn: () =>
+      get<{ from: string; to: string; items: StaffAttendanceSummaryItem[] }>('/staff-attendance/summary', params),
+    enabled: Boolean(params.from && params.to),
+  });
 
 /* ---------------------------------------- Academic ---------------------------------------- */
 

@@ -1,3 +1,4 @@
+import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
@@ -8,6 +9,8 @@ import ClassRoundedIcon from '@mui/icons-material/ClassRounded';
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
+import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
+import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import type { ReactNode } from 'react';
@@ -55,6 +58,18 @@ export function buildNav({ can, labels, isTeacher, me }: AuthContextValue): NavG
       items: [
         ...(can('students.read') ? [{ label: plural(labels.student), to: '/students', icon: <GroupsRoundedIcon /> }] : []),
         ...(can('employees.read') ? [{ label: 'Staff', to: '/staff', icon: <BadgeRoundedIcon /> }] : []),
+        ...(can('attendance.read')
+          ? [{ label: 'Staff attendance', to: '/attendance', icon: <EventAvailableRoundedIcon /> }]
+          : []),
+      ],
+    },
+    {
+      title: 'Finance',
+      items: [
+        ...(can('fees.read') ? [{ label: 'Fee collection', to: '/fees', icon: <PaymentsRoundedIcon /> }] : []),
+        ...(can('payroll.read')
+          ? [{ label: 'Salary allocation', to: '/salaries', icon: <AccountBalanceWalletRoundedIcon /> }]
+          : []),
       ],
     },
     {
